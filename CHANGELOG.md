@@ -76,5 +76,38 @@ Rules that keep three chats from colliding:
   change the meaning of an existing zone, exported function, or stored field —
   that is what lets three sessions extend this in parallel safely.
 
-### Not yet built
-- Phase 0 scaffold (template, submodules, CI) still to do. No DLL exists yet.
+### Added — Phase 0 (scaffold, map identity, load/save round-trip)
+- Scaffold from the DossierExt/AcademyExt template: YRpp + Phobos submodules
+  pinned to the same commits the sibling projects use (3ba94954 / 47475624), CI
+  building DevBuild after range-checking hooks against the YR-Hook-Encyclopedia
+  registry.
+- **4 hooks, all shared seats already proven by the siblings** — no new address
+  risk: `0x7CD810` ExeRun (static patches), `0x52F639` CmdLineParse (flush log),
+  `0x685659` Scenario_ClearClasses (per-scenario reset + re-parse),
+  `0x4F8440` HouseClass::Update (frame pulse; WarZoneExt has no per-house logic,
+  it self-gates on frame). Overlap + bounds checks clean.
+- `[WarZone.General]`: Enabled, DebugTicks, ZoneDir, Bucket, TopN, DecayShift,
+  ForgetBelowGames, CheckpointInterval, UseHistoryInMultiplayer.
+- **Zone store** (`Zones.h/.cpp`): the generic registry — `Add(zone, x, y, w)` is
+  the single write path, so pruning and decay live in one place and every future
+  zone type inherits them. Load/save `<ZoneDir>/<MapStem>.ini` with `[Meta]` +
+  `[Zone.<Name>]`; zone names may contain dots (`Lane.0.Out`) since the parser
+  splits only on the first one. Prunes to `TopN` on save; applies `DecayShift`
+  and `ForgetBelowGames` on load.
+- **Map identity** (`MapId.h/.cpp`): carries over the trap that cost DossierExt a
+  test cycle — `ScenarioClass::FileName` is *always* `spawnmap.ini` in
+  skirmish/CnCNet, so the real name comes from spawn.ini `[Settings] UIMapName`
+  (leading `[8] ` tag stripped, sanitised dot-free). Getting this wrong collapses
+  every map into one record.
+- Writes the record at match **start**, not just at the end, so a broken IO path
+  shows up immediately rather than after a full game.
+- Logs the MP verdict once per match: recording is synced-safe and always on, but
+  stored history differs per client, so it is off-limits for sim-affecting use
+  with 2+ humans unless `UseHistoryInMultiplayer=yes`.
+
+### Notes
+- Nothing is recorded yet — Phase 0 deliberately proves the spine (identify map →
+  read → play → write) before any data feeds it. Phase 1 adds Kill/MinerDeath/
+  Lane from `0x702D40`.
+- Config echo happens from the per-scenario parse, **not** from ExeRun: logging
+  at `0x7CD810` is discarded because the log isn't open yet.
