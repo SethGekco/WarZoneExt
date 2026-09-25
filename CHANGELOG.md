@@ -43,6 +43,45 @@ Rules that keep three chats from colliding:
 
 ---
 
+## [unreleased] — 2026-09-25 — DoctrineExt session (AA air-defense, Rex)
+
+### API — FIRST EXPORTED SURFACE (`WZ_Version()` now exists)
+- `WZ_Version()` → int (currently **1**). The bind gate: a consumer does
+  `GetModuleHandleA("WarZoneExt.dll")` + `GetProcAddress`, and if it's absent or
+  returns less than the consumer needs, the consumer must not rely on the rest.
+  This is the API the changelog earmarked for "Phase 3", brought forward because
+  DoctrineExt's air-defense needed a persistent zone to read. **Additive — no
+  action for existing consumers; binding is optional by construction.**
+- `WZ_ZoneWeight(const char* zone, int cellX, int cellY)` → int, the weight stored
+  for a zone at a map cell (0 if unknown / not recorded / disabled). Generic **by
+  zone name** as the design intends (one query; names are data). x86 `__cdecl`,
+  `extern "C"`, exported undecorated as `WZ_Version` / `WZ_ZoneWeight`.
+
+### Added
+- **`AirDeath` zone** (NEW name — additive, nothing repurposed): where aircraft
+  get their kills. Recorded by a SECOND read-only hook at the kill seat `0x702D40`
+  (`DEFINE_HOOK_AGAIN`; Recorder keeps its own hook — same-address chaining is
+  legal, Syringe runs both). Every air-caused death, every house, so it becomes
+  map-level "air is contested *here*" memory a brand-new opponent inherits on a
+  known map. First consumer: DoctrineExt air-defense (AA P2), blending this
+  persistent prior with its own in-game per-house air death-zones.
+
+### Consumers
+- **DoctrineExt** will bind `WZ_Version` + `WZ_ZoneWeight` **optionally**
+  (`GetModuleHandle`/`GetProcAddress`), so it runs unchanged when WarZoneExt isn't
+  installed and lights up when it is. No action for AITriggerTypeExt / DossierExt —
+  the export table and every existing zone are untouched.
+
+### Verified
+- Builds: pending CI on this commit. **Not yet verified in-game** — needs a match
+  with aircraft to confirm the `AirDeath` zone accumulates and `WZ_ZoneWeight`
+  reads it back. Will update here once tested. (Recording sits on the same proven
+  kill seat as the `Kill` zone, which is already confirmed accumulating.)
+- NOTE: this landed on top of Phase 2 (terrain + Traffic/MinerTravel/StructureLoss/
+  FirstContact), which a parallel session committed moments earlier. To stay out of
+  its way this change touches only `WarZoneExt.cpp` + this file — no edits to the
+  shared Recorder/Zones/Engine/Config, so nothing it added is affected.
+
 ## [unreleased] — 2026-09-24 — DossierExt session (Rex)
 
 ### Added
