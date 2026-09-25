@@ -124,7 +124,43 @@ Rules that keep three chats from colliding:
   clean game end — matches here routinely stop without a verdict, and a summary
   nobody sees can't be graded.
 
+### Added — Phase 2 (terrain analysis + four more zones)
+- **`Terrain.cpp` — static map analysis, a different KIND of zone.** Event zones
+  need games to accumulate; terrain is a *fact about the map*, so it is computed
+  once the first time a map is seen and is useful on **game 1**, before any play
+  history exists. Never recomputed (cliffs don't move). Weight = percent, so the
+  stored numbers describe **spacing** directly:
+  - `Terrain.Open` — `>= OpenPercent` passable: room to manoeuvre
+  - `Terrain.Cliff` — `>= CliffPercent` rock/wall: a flank to anchor on
+  - `Terrain.Water` — `>= CliffPercent` water
+  - `Terrain.Choke` — passable but narrow (`ChokeMin..ChokeMax%`) **and** joining
+    ≥2 open buckets, so it's a real corridor rather than a ragged map edge
+  Cost: one linear pass over cells, then one over buckets; neighbour lookups are
+  per-bucket map probes, so nothing is quadratic in cells.
+- **`Terrain.*` is exempt from `TopN` pruning, `DecayShift` and
+  `ForgetBelowGames`.** A map has far more than TopN cliff buckets and pruning
+  them would silently amputate its geography. Evidence zones still prune/decay.
+- **`Traffic.cpp` — sampled, not hooked**, because movement is a continuous state
+  and a hook on it would fire absurdly often. Every `TrafficInterval` frames,
+  bucket anything with `Destination != nullptr`:
+  - `Traffic` — the road network as players actually use it, not as the terrain
+    implies
+  - `MinerTravel` — the ore commute, i.e. where interdiction actually hurts
+- Two more zones free off the existing kill seat:
+  - `StructureLoss` — where *buildings* die: ground someone committed to and
+    then lost. Distinct from `Kill` because losing a structure means something
+    different from losing a unit.
+  - `FirstContact` — the first hostile death of a match *only*. One sample per
+    game, so it converges into a genuine opening-engagement map instead of being
+    drowned by a long battle.
+- New config: `[WarZone.General] TrafficInterval`; `[WarZone.Terrain] Scan`,
+  `OpenPercent`, `CliffPercent`, `ChokeMinPercent`, `ChokeMaxPercent`.
+- All names are new — additive, nothing repurposed. 5 hooks unchanged.
+
 ### Notes
+- Phase 1 and 2 are both **untested in-game** as of this entry — recording-only
+  and exporting nothing, so they cannot affect gameplay, but treat their output
+  as unverified until a log confirms it.
 - Phase 0 deliberately recorded nothing, proving the spine (identify map → read →
   play → write) before data fed it. **Verified in-game 2026-09-24**: the
   spawnmap trap fix resolved `UIMapName='Powder_Keg'` correctly first try, and
