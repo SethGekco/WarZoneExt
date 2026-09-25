@@ -66,5 +66,15 @@ Rules that keep three chats from colliding:
 - Nothing exported yet — no consumer action. Phase 3 introduces the API; until
   `WZ_Version()` exists, consumers must not attempt to bind.
 
+### Workflow (how Rex wants this repo handled)
+- He treats WarZoneExt as **invisible infrastructure** and does not want to
+  manage it as a separate project. A request for a zone feature arrives in a
+  *consumer* session; that agent does **both halves itself**: extend whatever is
+  needed here (additively), then wire it into the consumer as an optional
+  runtime dependency. No task-relaying back to Rex. See `CLAUDE.md` §0.
+- Corollary: **add, don't repurpose.** New requirement = new zone name. Never
+  change the meaning of an existing zone, exported function, or stored field —
+  that is what lets three sessions extend this in parallel safely.
+
 ### Not yet built
 - Phase 0 scaffold (template, submodules, CI) still to do. No DLL exists yet.

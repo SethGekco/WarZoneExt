@@ -1,6 +1,26 @@
 # WarZoneExt — notes for agents
 
-Read `DESIGN.md` for what this is. Two rules specific to this repo:
+Read `DESIGN.md` for what this is.
+
+## 0. Rex treats this repo as invisible infrastructure
+
+He does not want to manage WarZoneExt as a separate project. When he asks for a
+zone feature **in a consumer project** (AITriggerTypeExt, DoctrineExt,
+DossierExt), the agent in that session does **both halves itself, in one go**:
+
+1. **Extend WarZoneExt** so it can supply what's needed — *additively*, without
+   changing behaviour another consumer already relies on.
+2. **Wire it into the consumer** as an *optional* runtime dependency
+   (`GetModuleHandle` + `GetProcAddress`), so that DLL still works unchanged
+   when WarZoneExt isn't installed and lights up when it is.
+
+Do not ask him to coordinate the other projects, and do not hand him a task to
+relay. The changelog is the coordination mechanism — see §1.
+
+**Add, don't repurpose.** A new requirement means a **new zone name**, never a
+changed meaning for an existing zone, exported function, or stored field. That
+single habit is what lets three sessions extend this repo in parallel without
+breaking each other.
 
 ## 1. Update CHANGELOG.md in the same commit as your change
 
@@ -26,9 +46,12 @@ depend on it without fighting.
   skirmish/CnCNet. Use spawn.ini `[Settings] UIMapName` (strip a leading `[8] `
   tag, sanitise, keep it dot-free). Getting this wrong collapses every map into
   one record.
-- "Changed hands" is `Owner != InitialOwner`. **Not** `HasBeenCaptured` — that
-  also trips on garrison-type interactions, and `Capturable` is set on ordinary
-  buildings too, so neither flag means what its name suggests.
+- "Changed hands" is `Owner != InitialOwner` — exact, and what DossierExt uses.
+  `HasBeenCaptured` is **not** a safe substitute: an AI house showed 14 of them
+  in one game and the cause was never established, so treat it as meaning more
+  than "was captured" until someone proves otherwise. `Capturable` is worse
+  still — vanilla sets it on ordinary buildings (GAPILE/GAREFN/GAPOWR), so it
+  identifies nothing. Neither flag means what its name suggests.
 - Kill seat: `0x702D40` RegisterDestruction entry, `ECX` = victim,
   `[ESP+4]` = killer. Same-address hooks chain legally; DoctrineExt and
   DossierExt already sit there read-only.
