@@ -61,6 +61,11 @@ void Engine::TickHouse(HouseClass* const pHouse)
 	{
 		g_lastSaveFrame = frame;
 		Zones::Save();
+		// Summarise at each checkpoint, not only at a clean game end: matches
+		// here routinely stop without a verdict, and a summary you never see is
+		// a summary that can't be graded.
+		if (cfg.DebugTicks)
+			Zones::LogSummary();
 	}
 }
 

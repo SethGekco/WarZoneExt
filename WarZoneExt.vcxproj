@@ -33,6 +33,7 @@
     <ClCompile Include="src\WarZone\MapId.cpp" />
     <ClCompile Include="src\WarZone\Zones.cpp" />
     <ClCompile Include="src\WarZone\Engine.cpp" />
+    <ClCompile Include="src\WarZone\Recorder.cpp" />
   </ItemGroup>
 
   <!-- Header files -->
@@ -42,6 +43,7 @@
     <ClInclude Include="src\WarZone\MapId.h" />
     <ClInclude Include="src\WarZone\Zones.h" />
     <ClInclude Include="src\WarZone\Engine.h" />
+    <ClInclude Include="src\WarZone\Recorder.h" />
   </ItemGroup>
 
   <PropertyGroup Label="Globals">

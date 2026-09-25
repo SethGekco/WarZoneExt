@@ -105,9 +105,30 @@ Rules that keep three chats from colliding:
   stored history differs per client, so it is off-limits for sim-affecting use
   with 2+ humans unless `UseHistoryInMultiplayer=yes`.
 
+### Added — Phase 1 (recording: Kill, MinerDeath, Lane)
+- `Recorder.cpp`, one hook at the proven kill seat `0x702D40`
+  (RegisterDestruction; ECX=victim, `[ESP+4]`=killer — DoctrineExt and DossierExt
+  already sit there, same-address hooks chain, and we only read so order is
+  irrelevant). **5 hooks total, overlap clean.**
+- Zones now written (**new names — additive, nothing repurposed**):
+  - `Kill` — every death, every house. Recording AI-vs-AI too is most of why
+    this layer converges in a few games instead of dozens.
+  - `MinerDeath` — deaths of `UnitTypeClass::Harvester` units, i.e. vulnerable
+    harvest spots. Under-reports rather than guessing: an unflagged miner-like
+    unit simply isn't counted.
+  - `Lane.<spawn>.Out` / `Lane.<spawn>.In` — derived from the same event, so
+    "this map fights here" becomes "a player starting *there* fights *here*" for
+    free. Only counted when the two houses are actually hostile, so friendly
+    fire and civilian casualties can't paint a false attack route.
+- Zone summary now logs at every checkpoint under `DebugTicks`, not only at a
+  clean game end — matches here routinely stop without a verdict, and a summary
+  nobody sees can't be graded.
+
 ### Notes
-- Nothing is recorded yet — Phase 0 deliberately proves the spine (identify map →
-  read → play → write) before any data feeds it. Phase 1 adds Kill/MinerDeath/
-  Lane from `0x702D40`.
+- Phase 0 deliberately recorded nothing, proving the spine (identify map → read →
+  play → write) before data fed it. **Verified in-game 2026-09-24**: the
+  spawnmap trap fix resolved `UIMapName='Powder_Keg'` correctly first try, and
+  `WarZones/Powder_Keg.ini` was written with `[Meta]` only. The *load* half of
+  the round-trip is still unverified — it needs a second match on the same map.
 - Config echo happens from the per-scenario parse, **not** from ExeRun: logging
   at `0x7CD810` is discarded because the log isn't open yet.

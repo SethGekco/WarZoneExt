@@ -25,9 +25,10 @@ geography at once. **WarZoneExt learns the map; DossierExt learns the person.**
 
 ## Status
 
-**Phase 0** — scaffold, map identity, and the per-map load/save round-trip.
-Records nothing yet and exports nothing yet; log-only. Don't bind an API until
-`WZ_Version()` exists (Phase 3).
+**Phase 1** — recording `Kill`, `MinerDeath` and `Lane.<spawn>.Out/In` from the
+kill seat, on top of the Phase 0 spine (map identity + per-map load/save, verified
+in-game). Still exports nothing: don't bind an API until `WZ_Version()` exists
+(Phase 3).
 
 ## Build
 

@@ -1,6 +1,7 @@
 #include "WarZone/Config.h"
 #include "WarZone/Zones.h"
 #include "WarZone/Engine.h"
+#include "WarZone/Recorder.h"
 
 #include <CCINIClass.h>
 #include <Utilities/Debug.h>
@@ -56,6 +57,7 @@ DEFINE_HOOK(0x685659, WarZoneExt_Scenario_ClearClasses, 0xA)
 {
 	Zones::Reset();
 	Engine::Reset();
+	Recorder::Reset();
 	WarZoneConfig::Reset();
 	WarZoneConfig::EnsureParsed();
 	return 0;
