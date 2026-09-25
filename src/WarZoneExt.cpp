@@ -57,9 +57,10 @@ DEFINE_HOOK(0x52F639, WarZoneExt_CmdLineParse, 0x5)
 // A SECOND read-only hook at the kill seat (Recorder already owns one). Records
 // WHERE aircraft get their kills, so any consumer learns a map's air-contested
 // ground — persistent, player-independent, useful from game 1 on a known map.
-// Same-address chaining is legal (Syringe runs both handlers); DEFINE_HOOK_AGAIN
-// gives this one a distinct symbol. Additive: a NEW zone name, nothing repurposed.
-DEFINE_HOOK_AGAIN(0x702D40, WarZoneExt_RegisterDestruction_AirDeath, 0x5)
+// Same-address chaining is legal — a second DEFINE_HOOK with a distinct name adds
+// another handler at 0x702D40 (Syringe runs both). Additive: a NEW zone name,
+// nothing repurposed.
+DEFINE_HOOK(0x702D40, WarZoneExt_RegisterDestruction_AirDeath, 0x5)
 {
 	GET(TechnoClass* const, pVictim, ECX);
 	GET_STACK(TechnoClass* const, pKiller, 0x4);
