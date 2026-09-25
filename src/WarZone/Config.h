@@ -19,6 +19,17 @@ struct WarZoneConfig
 	int CheckpointInterval = 3000;      // frames between saves
 	bool UseHistoryInMultiplayer = false; // reading history into sim = desync
 
+	// Traffic sampling (movement is a state, not an event, so it's sampled).
+	int TrafficInterval = 150;          // frames between movement samples
+
+	// Static terrain analysis. Percentages are per bucket, so they describe
+	// SPACING: 90% passable = open ground, 20% = mostly wall/water/cliff.
+	bool ScanTerrain = true;
+	int OpenPercent = 85;               // >= this passable -> Terrain.Open
+	int CliffPercent = 40;              // >= this rock/water -> Cliff / Water
+	int ChokeMinPercent = 10;           // a choke is passable but narrow...
+	int ChokeMaxPercent = 60;           // ...and needs >=2 open neighbours
+
 	static WarZoneConfig Instance;
 
 	static void Reset();

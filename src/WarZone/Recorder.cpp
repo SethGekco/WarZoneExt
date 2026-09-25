@@ -16,6 +16,7 @@ namespace
 {
 	int g_kills = 0;
 	int g_minerDeaths = 0;
+	bool g_firstContact = false;
 
 	// Harvesters are UnitTypes with Harvester=yes. Slaves/miners of other
 	// shapes that aren't flagged simply won't count — better to under-report
@@ -50,6 +51,7 @@ void Recorder::Reset()
 {
 	g_kills = 0;
 	g_minerDeaths = 0;
+	g_firstContact = false;
 }
 
 // TechnoClass::RegisterDestruction entry — ECX = dying object, [ESP+4] = killer.
@@ -80,6 +82,12 @@ DEFINE_HOOK(0x702D40, WarZoneExt_RegisterDestruction_Record, 0x5)
 				cell.X, cell.Y, Zones::BucketKey(cell.X, cell.Y).c_str(), g_minerDeaths);
 	}
 
+	// Where BUILDINGS die — i.e. ground someone committed to and then lost.
+	// A separate zone from Kill because losing a structure means something very
+	// different from losing a unit.
+	if (pVictim->WhatAmI() == AbstractType::Building)
+		Zones::Add("StructureLoss", cell.X, cell.Y);
+
 	// Directional lanes, from the one event. Only count a lane when the two
 	// sides are actually hostile, so friendly fire and civilian casualties
 	// don't paint a false attack route.
@@ -88,6 +96,18 @@ DEFINE_HOOK(0x702D40, WarZoneExt_RegisterDestruction_Record, 0x5)
 	{
 		AddLane(SpawnOf(pKiller), "Out", cell.X, cell.Y);
 		AddLane(SpawnOf(pVictim), "In", cell.X, cell.Y);
+
+		// The FIRST hostile death of the match: where the armies actually meet.
+		// One sample per game, so it converges into a genuine "opening
+		// engagement" map rather than being drowned by a long battle.
+		if (!g_firstContact)
+		{
+			g_firstContact = true;
+			Zones::Add("FirstContact", cell.X, cell.Y);
+			Debug::Log("[WarZoneExt] first contact at %d,%d (bucket %s) on frame %d\n",
+				cell.X, cell.Y, Zones::BucketKey(cell.X, cell.Y).c_str(),
+				Unsorted::CurrentFrame);
+		}
 	}
 
 	return 0;

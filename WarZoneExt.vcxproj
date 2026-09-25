@@ -34,6 +34,8 @@
     <ClCompile Include="src\WarZone\Zones.cpp" />
     <ClCompile Include="src\WarZone\Engine.cpp" />
     <ClCompile Include="src\WarZone\Recorder.cpp" />
+    <ClCompile Include="src\WarZone\Terrain.cpp" />
+    <ClCompile Include="src\WarZone\Traffic.cpp" />
   </ItemGroup>
 
   <!-- Header files -->
@@ -44,6 +46,8 @@
     <ClInclude Include="src\WarZone\Zones.h" />
     <ClInclude Include="src\WarZone\Engine.h" />
     <ClInclude Include="src\WarZone\Recorder.h" />
+    <ClInclude Include="src\WarZone\Terrain.h" />
+    <ClInclude Include="src\WarZone\Traffic.h" />
   </ItemGroup>
 
   <PropertyGroup Label="Globals">

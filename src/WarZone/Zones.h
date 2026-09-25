@@ -43,6 +43,14 @@ namespace Zones
 	// Weight currently stored for a cell (0 if unknown).
 	int Weight(const char* zone, int cellX, int cellY);
 
+	// Set an exact weight at an already-computed bucket key. For derived data
+	// that is a measurement rather than an accumulation — terrain percentages.
+	void AddRaw(const char* zone, std::string const& bucketKey, int weight);
+
+	// Does this map's record already carry this zone? Used to avoid recomputing
+	// static data that can never change.
+	bool HasZone(const char* zone);
+
 	// Persist if dirty. Prunes each zone to TopN first.
 	void Save();
 

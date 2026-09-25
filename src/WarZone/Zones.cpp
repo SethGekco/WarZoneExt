@@ -30,6 +30,15 @@ namespace
 		return buf;
 	}
 
+	// `Terrain.*` is measured map shape, not accumulated evidence: it must NOT be
+	// pruned to TopN (a map has far more than TopN cliff buckets, and cutting
+	// them would silently amputate the map's geography) and must NOT decay
+	// (cliffs don't erode). Everything else is evidence and gets both.
+	bool IsStatic(std::string const& zone)
+	{
+		return zone.compare(0, 8, "Terrain.") == 0;
+	}
+
 	// Keep only the hottest TopN buckets so one map file can't grow forever.
 	void Prune(std::map<std::string, int>& grid, int const topN)
 	{
@@ -106,14 +115,19 @@ namespace
 			Debug::Log("[WarZoneExt] map '%s': only %d game(s) recorded, below "
 				"ForgetBelowGames=%d — ignoring stored zones.\n",
 				rec.Stem.c_str(), rec.Games, cfg.ForgetBelowGames);
-			rec.Zones.clear();
+			for (auto it = rec.Zones.begin(); it != rec.Zones.end(); )
+				it = IsStatic(it->first) ? std::next(it) : rec.Zones.erase(it);
 		}
 		// Decay keeps a stale meta from dominating after the map's play changes.
 		else if (cfg.DecayShift > 0)
 		{
 			for (auto& [zone, grid] : rec.Zones)
+			{
+				if (IsStatic(zone))
+					continue;           // map shape doesn't erode
 				for (auto& [bucket, weight] : grid)
 					weight >>= cfg.DecayShift;
+			}
 		}
 
 		size_t buckets = 0;
@@ -176,6 +190,22 @@ void Zones::Add(const char* const zone, int const cellX, int const cellY, int co
 	g_map.Dirty = true;
 }
 
+void Zones::AddRaw(const char* const zone, std::string const& bucketKey, int const weight)
+{
+	if (!zone || !*zone)
+		return;
+	g_map.Zones[zone][bucketKey] = weight;
+	g_map.Dirty = true;
+}
+
+bool Zones::HasZone(const char* const zone)
+{
+	if (!zone || !*zone)
+		return false;
+	auto const it = g_map.Zones.find(zone);
+	return it != g_map.Zones.end() && !it->second.empty();
+}
+
 int Zones::Weight(const char* const zone, int const cellX, int const cellY)
 {
 	if (!zone || !*zone)
@@ -195,7 +225,8 @@ void Zones::Save()
 	CreateDirectoryA(cfg.ZoneDir.c_str(), nullptr); // no-op if it exists
 
 	for (auto& [zone, grid] : g_map.Zones)
-		Prune(grid, cfg.TopN);
+		if (!IsStatic(zone))
+			Prune(grid, cfg.TopN);
 
 	auto const path = PathFor(g_map.Stem);
 	FILE* const f = std::fopen(path.c_str(), "w");

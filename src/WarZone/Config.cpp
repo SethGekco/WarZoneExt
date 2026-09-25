@@ -2,6 +2,7 @@
 #include "WarZone/Zones.h"
 #include "WarZone/Engine.h"
 #include "WarZone/Recorder.h"
+#include "WarZone/Traffic.h"
 
 #include <CCINIClass.h>
 #include <Utilities/Debug.h>
@@ -36,6 +37,12 @@ void WarZoneConfig::EnsureParsed()
 	cfg.CheckpointInterval = pINI->ReadInteger("WarZone.General", "CheckpointInterval", cfg.CheckpointInterval);
 	cfg.UseHistoryInMultiplayer = pINI->ReadBool("WarZone.General", "UseHistoryInMultiplayer",
 		cfg.UseHistoryInMultiplayer);
+	cfg.TrafficInterval = pINI->ReadInteger("WarZone.General", "TrafficInterval", cfg.TrafficInterval);
+	cfg.ScanTerrain = pINI->ReadBool("WarZone.Terrain", "Scan", cfg.ScanTerrain);
+	cfg.OpenPercent = pINI->ReadInteger("WarZone.Terrain", "OpenPercent", cfg.OpenPercent);
+	cfg.CliffPercent = pINI->ReadInteger("WarZone.Terrain", "CliffPercent", cfg.CliffPercent);
+	cfg.ChokeMinPercent = pINI->ReadInteger("WarZone.Terrain", "ChokeMinPercent", cfg.ChokeMinPercent);
+	cfg.ChokeMaxPercent = pINI->ReadInteger("WarZone.Terrain", "ChokeMaxPercent", cfg.ChokeMaxPercent);
 
 	if (cfg.Bucket < 1)
 		cfg.Bucket = 1;
@@ -46,6 +53,10 @@ void WarZoneConfig::EnsureParsed()
 		cfg.Enabled, cfg.DebugTicks, cfg.ZoneDir.c_str(), cfg.Bucket, cfg.TopN,
 		cfg.DecayShift, cfg.ForgetBelowGames, cfg.CheckpointInterval,
 		cfg.UseHistoryInMultiplayer);
+	Debug::Log("[WarZoneExt] [WarZone.Terrain]: Scan=%d OpenPercent=%d CliffPercent=%d "
+		"Choke=%d-%d%% TrafficInterval=%d\n",
+		cfg.ScanTerrain, cfg.OpenPercent, cfg.CliffPercent, cfg.ChokeMinPercent,
+		cfg.ChokeMaxPercent, cfg.TrafficInterval);
 	if (cfg.UseHistoryInMultiplayer)
 		Debug::Log("[WarZoneExt] WARNING: UseHistoryInMultiplayer=yes — stored history differs "
 			"per client, so letting it influence the sim WILL desync a 2+ human game.\n");
@@ -58,6 +69,7 @@ DEFINE_HOOK(0x685659, WarZoneExt_Scenario_ClearClasses, 0xA)
 	Zones::Reset();
 	Engine::Reset();
 	Recorder::Reset();
+	Traffic::Reset();
 	WarZoneConfig::Reset();
 	WarZoneConfig::EnsureParsed();
 	return 0;
