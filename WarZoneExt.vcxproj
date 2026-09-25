@@ -35,6 +35,7 @@
     <ClCompile Include="src\WarZone\Engine.cpp" />
     <ClCompile Include="src\WarZone\Recorder.cpp" />
     <ClCompile Include="src\WarZone\Terrain.cpp" />
+    <ClCompile Include="src\WarZone\Connectivity.cpp" />
     <ClCompile Include="src\WarZone\Traffic.cpp" />
   </ItemGroup>
 
@@ -47,6 +48,7 @@
     <ClInclude Include="src\WarZone\Engine.h" />
     <ClInclude Include="src\WarZone\Recorder.h" />
     <ClInclude Include="src\WarZone\Terrain.h" />
+    <ClInclude Include="src\WarZone\Connectivity.h" />
     <ClInclude Include="src\WarZone\Traffic.h" />
   </ItemGroup>
 

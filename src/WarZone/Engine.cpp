@@ -3,6 +3,7 @@
 #include "WarZone/Zones.h"
 #include "WarZone/MapId.h"
 #include "WarZone/Terrain.h"
+#include "WarZone/Connectivity.h"
 #include "WarZone/Traffic.h"
 
 #include <HouseClass.h>
@@ -58,6 +59,7 @@ void Engine::TickHouse(HouseClass* const pHouse)
 		// Scanned after the fingerprint so map bounds are known, and skipped
 		// entirely once a map has terrain on record — map shape never changes.
 		Terrain::EnsureScanned();
+		Connectivity::EnsureScanned();
 
 		Zones::LogSummary();
 	}

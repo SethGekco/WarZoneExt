@@ -43,6 +43,60 @@ Rules that keep three chats from colliding:
 
 ---
 
+## [unreleased] — 2026-09-25 — AITriggerTypeExt session (ground/naval reachability, Rex)
+
+### Added
+- **`Terrain.GroundZone` / `Terrain.WaterZone` zones** (NEW names — additive; new
+  file `Connectivity.cpp`, doesn't touch Terrain.cpp or anything else Phase 2
+  added). Same "measured once, useful on game 1, never recomputed" shape as
+  `Terrain.Open/Cliff/Water/Choke`, but answers a different question: not "how
+  open is this bucket" but "can you actually get from bucket A to bucket B".
+  One representative cell per bucket samples `MapClass::GetMovementZoneType`
+  (`0x56D230`, `MovementZone::Normal` / `::Water`) — YR's own precomputed
+  per-cell connectivity grid, not a live pathfind. Two buckets are reachable by
+  that movement type iff their stored value is **equal**.
+- **Weight convention here differs from every other zone in the store — read
+  this before querying it.** The stored int is `(engine zone id + 1)`, not a
+  count or a percentage. `0` means *not recorded* (no zone exists for that
+  movement type at that bucket, or the scan hasn't run). The `+1` exists because
+  a real zone id can legitimately be `0`, which would otherwise be
+  indistinguishable from "unrecorded" through `WZ_ZoneWeight`'s existing
+  0-means-unknown convention. **Compare two reads for equality only** — never
+  sum, rank, or threshold the value; the magnitude itself carries no meaning.
+- No new config: reuses `[WarZone.Terrain] Scan`. Own skip-check keyed on its
+  own zone names (`HasZone("Terrain.GroundZone")`), deliberately independent of
+  `Terrain::EnsureScanned`'s `Open`/`Cliff` check — so a map record saved
+  *before* this feature existed (which already has `Terrain.Open` on disk)
+  doesn't short-circuit this scan and leave connectivity permanently
+  unrecorded on that map. The `Terrain.` prefix gets it the existing
+  `Zones::IsStatic` exemption (no TopN pruning, no decay) for free.
+
+### API
+- No new exports. Reads through the existing generic `WZ_ZoneWeight(zone, x, y)`
+  — that's the whole point of the by-name zone design. No consumer action
+  needed to gain access once WarZoneExt is present.
+
+### Consumers
+- **Origin**: the AITriggerTypeExt session that requested this already ships
+  `RequiresGroundPathToEnemy`/`RequiresNavalPathToEnemy` conditions computed the
+  *same way* directly against the engine — cheap enough that a single boolean
+  trigger gate doesn't need WarZoneExt. **AITriggerTypeExt keeps that direct
+  call; no rework, no action needed.**
+- **Added ahead of its consumer, on purpose** (Rex: "add it even if it's as a
+  reference"). Intended first real consumer is **DoctrineExt**, for
+  multi-path / nearest-reachable-enemy reasoning during its route-steering
+  work (the "route saturated → steer around it" item on its roadmap). DossierExt:
+  no action, nothing it depends on changed.
+- Whoever binds this first: check `WZ_Version` per the existing pattern, and
+  treat `0` as "not recorded" per the weight convention above — do **not**
+  assume the returned int is literally the engine's zone id.
+
+### Verified
+- Not yet. CI pending on this commit. In-game verification needs a debug log
+  showing `connectivity scanned: N bucket(s) -> ...` at map load, and ideally a
+  multi-landmass map to confirm `distinctGround > 1` actually flags disconnected
+  land. Will update this entry once tested.
+
 ## [unreleased] — 2026-09-25 — DoctrineExt session (AA air-defense, Rex)
 
 ### API — FIRST EXPORTED SURFACE (`WZ_Version()` now exists)
