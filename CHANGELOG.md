@@ -43,6 +43,38 @@ Rules that keep three chats from colliding:
 
 ---
 
+## [unreleased] — 2026-09-25 — DoctrineExt session (wealth geography, Rex)
+
+### Added
+- **`Wealth` zone** (NEW name — additive; new files `Wealth.cpp/.h`, doesn't touch
+  any existing recorder/scanner). Summed tiberium/gem value per bucket, scanned
+  ONCE per map at load (`Wealth::EnsureScanned`, cached via `HasZone("Wealth")`),
+  answering "where is this map's money". Same measured-once-map-fact shape as
+  `Terrain.*`: an ore field is geography a new opponent should inherit on game 1,
+  not evidence to forget.
+- **`IsStatic` now also exempts `Wealth`** from TopN pruning and decay (a map has
+  many ore buckets and they shouldn't erode between games). This is the one edit
+  to a shared file (`Zones.cpp`) — additive: it only *adds* `Wealth` to the static
+  set, changing nothing for any existing zone.
+- Config: `[WarZone.Terrain] ScanWealth=yes` (default on), reusing the terrain
+  section since it's the same "static map scan" family. No new hook.
+- **Weight convention:** the stored int is *summed ore value* in that bucket, so
+  it IS meaningful to rank/threshold/compare (unlike `Terrain.GroundZone`'s
+  id+1). Bigger = richer field. 0 = no ore recorded there.
+
+### API
+- No new exports — read via the existing `WZ_ZoneWeight("Wealth", x, y)`.
+
+### Consumers
+- **DoctrineExt** consumes it for a greedy base-expansion / economy doctrine
+  (seek and build toward money). Binds optionally as before. No action for
+  AITriggerTypeExt / DossierExt.
+
+### Verified
+- Builds: pending CI on this commit. **Not yet verified in-game** — needs a log
+  line `wealth scanned: N ore cell(s), total value M` at map load, and an
+  `[Zone.Wealth]` block written to the map's `.ini`. Will update once tested.
+
 ## [unreleased] — 2026-09-25 — AITriggerTypeExt session (ground/naval reachability, Rex)
 
 ### Added

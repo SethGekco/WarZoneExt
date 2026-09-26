@@ -37,6 +37,7 @@
     <ClCompile Include="src\WarZone\Terrain.cpp" />
     <ClCompile Include="src\WarZone\Connectivity.cpp" />
     <ClCompile Include="src\WarZone\Traffic.cpp" />
+    <ClCompile Include="src\WarZone\Wealth.cpp" />
   </ItemGroup>
 
   <!-- Header files -->
@@ -50,6 +51,7 @@
     <ClInclude Include="src\WarZone\Terrain.h" />
     <ClInclude Include="src\WarZone\Connectivity.h" />
     <ClInclude Include="src\WarZone\Traffic.h" />
+    <ClInclude Include="src\WarZone\Wealth.h" />
   </ItemGroup>
 
   <PropertyGroup Label="Globals">

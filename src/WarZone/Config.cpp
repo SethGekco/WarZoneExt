@@ -3,6 +3,7 @@
 #include "WarZone/Engine.h"
 #include "WarZone/Recorder.h"
 #include "WarZone/Traffic.h"
+#include "WarZone/Wealth.h"
 
 #include <CCINIClass.h>
 #include <Utilities/Debug.h>
@@ -40,6 +41,7 @@ void WarZoneConfig::EnsureParsed()
 	cfg.TrafficInterval = pINI->ReadInteger("WarZone.General", "TrafficInterval", cfg.TrafficInterval);
 	cfg.ScanTerrain = pINI->ReadBool("WarZone.Terrain", "Scan", cfg.ScanTerrain);
 	cfg.RescanTerrain = pINI->ReadBool("WarZone.Terrain", "Rescan", cfg.RescanTerrain);
+	cfg.ScanWealth = pINI->ReadBool("WarZone.Terrain", "ScanWealth", cfg.ScanWealth);
 	cfg.OpenPercent = pINI->ReadInteger("WarZone.Terrain", "OpenPercent", cfg.OpenPercent);
 	cfg.CliffPercent = pINI->ReadInteger("WarZone.Terrain", "CliffPercent", cfg.CliffPercent);
 	cfg.ChokeMinPercent = pINI->ReadInteger("WarZone.Terrain", "ChokeMinPercent", cfg.ChokeMinPercent);
@@ -71,6 +73,7 @@ DEFINE_HOOK(0x685659, WarZoneExt_Scenario_ClearClasses, 0xA)
 	Engine::Reset();
 	Recorder::Reset();
 	Traffic::Reset();
+	Wealth::Reset();
 	WarZoneConfig::Reset();
 	WarZoneConfig::EnsureParsed();
 	return 0;

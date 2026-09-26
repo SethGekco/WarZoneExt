@@ -5,6 +5,7 @@
 #include "WarZone/Terrain.h"
 #include "WarZone/Connectivity.h"
 #include "WarZone/Traffic.h"
+#include "WarZone/Wealth.h"
 
 #include <HouseClass.h>
 #include <MapClass.h>
@@ -60,6 +61,7 @@ void Engine::TickHouse(HouseClass* const pHouse)
 		// entirely once a map has terrain on record — map shape never changes.
 		Terrain::EnsureScanned();
 		Connectivity::EnsureScanned();
+		Wealth::EnsureScanned();
 
 		Zones::LogSummary();
 	}

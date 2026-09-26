@@ -34,9 +34,11 @@ namespace
 	// pruned to TopN (a map has far more than TopN cliff buckets, and cutting
 	// them would silently amputate the map's geography) and must NOT decay
 	// (cliffs don't erode). Everything else is evidence and gets both.
+	// `Wealth` is the same kind of fact — the map's ore fields are geography, not
+	// evidence to forget — so it shares the static exemption.
 	bool IsStatic(std::string const& zone)
 	{
-		return zone.compare(0, 8, "Terrain.") == 0;
+		return zone.compare(0, 8, "Terrain.") == 0 || zone == "Wealth";
 	}
 
 	// Keep only the hottest TopN buckets so one map file can't grow forever.

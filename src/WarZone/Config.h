@@ -28,6 +28,8 @@ struct WarZoneConfig
 	// Force a re-scan even when terrain is already on record. Only needed when
 	// the SCANNER itself changed — stored terrain is otherwise permanent.
 	bool RescanTerrain = false;
+	// Scan the map's ore fields once into the `Wealth` zone (where the money is).
+	bool ScanWealth = true;
 	int OpenPercent = 85;               // >= this passable -> Terrain.Open
 	int CliffPercent = 40;              // >= this rock/water -> Cliff / Water
 	int ChokeMinPercent = 10;           // a choke is passable but narrow...
