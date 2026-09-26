@@ -114,13 +114,19 @@ Rules that keep three chats from colliding:
   wired correctly.
 
 ### Fixed / Added
-- **`Terrain.Cliff` came back EMPTY** on the first tested map while
-  `Terrain.Open` (193), `Terrain.Water` (293) and `Terrain.Choke` (27) all
-  populated. Cause not yet established — either the map genuinely has no
-  `LandType::Rock`, or cliffs are not expressed as Rock at all. Rather than guess
-  (a mistake this project has paid for before), added a **LandType census** to the
-  scan log, so the next run names every land type actually present:
-  `LandType census: Clear=... Water=... Rock=...`.
+- **`Terrain.Cliff` came back empty — RESOLVED, and it was correct.** Rex
+  confirmed the tested map (Powder Keg) simply has no cliffs, so zero buckets is
+  the right answer, not a detection failure. Recording the correction here per
+  rule 5: the earlier wording in this entry implied a possible bug, and there
+  isn't one.
+- **Caveat for whoever relies on cliffs:** absence is now confirmed correct, but
+  *presence* has never been positively verified — no tested map has had cliffs
+  yet. Before trusting `Terrain.Cliff` for anything load-bearing, check it on a
+  map with real cliffs and confirm the buckets land where they should.
+- Added a **LandType census** to the scan log anyway
+  (`LandType census: Clear=... Water=... Rock=...`): it makes "this map has no
+  X" self-evident from the log instead of something a future agent has to ask
+  about, and it cost nothing.
 - New `[WarZone.Terrain] Rescan=yes` to force a re-scan when the SCANNER changes
   (stored terrain is otherwise permanent and would mask any fix). **No consumer
   action; no zone or API change.**
