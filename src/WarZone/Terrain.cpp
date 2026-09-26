@@ -28,6 +28,11 @@ namespace
 	{
 		return total > 0 ? (part * 100) / total : 0;
 	}
+
+	// LandType is an int enum; index by its value so a census needs no switch.
+	const char* const kLandName[] = { "Clear", "Road", "Water", "Rock", "Wall",
+		"Tiberium", "Beach", "Rough", "Ice", "Railroad", "Tunnel", "Weeds" };
+	constexpr int kLandCount = static_cast<int>(sizeof(kLandName) / sizeof(kLandName[0]));
 }
 
 void Terrain::EnsureScanned()
@@ -36,7 +41,8 @@ void Terrain::EnsureScanned()
 	if (!cfg.ScanTerrain)
 		return;
 	// Already known for this map — terrain never changes, so never redo it.
-	if (Zones::HasZone("Terrain.Open") || Zones::HasZone("Terrain.Cliff"))
+	if (!cfg.RescanTerrain
+		&& (Zones::HasZone("Terrain.Open") || Zones::HasZone("Terrain.Cliff")))
 	{
 		Debug::Log("[WarZoneExt] terrain already on record for this map, skipping scan.\n");
 		return;
@@ -48,6 +54,11 @@ void Terrain::EnsureScanned()
 	// ── Pass 1: one visit per cell, tallied straight into buckets ──────────
 	std::map<std::string, Tally> buckets;
 	int cells = 0;
+	// Census every LandType we see. Cliff detection keys off Rock, and on the
+	// first tested map Cliff came back EMPTY — this says whether Rock simply
+	// isn't present or whether cliffs aren't expressed as Rock at all, instead
+	// of leaving it to guesswork.
+	int landCensus[kLandCount] = { 0 };
 	for (int y = b.Top; y <= b.Bottom; ++y)
 	{
 		for (int x = b.Left; x <= b.Right; ++x)
@@ -60,6 +71,9 @@ void Terrain::EnsureScanned()
 			auto& t = buckets[Zones::BucketKey(x, y)];
 			++t.Total;
 			auto const lt = pCell->LandType;
+			int const ltIdx = static_cast<int>(lt);
+			if (ltIdx >= 0 && ltIdx < kLandCount)
+				++landCensus[ltIdx];
 			if (lt == LandType::Rock || lt == LandType::Wall)
 				++t.Rock;
 			else if (lt == LandType::Water)
@@ -133,6 +147,20 @@ void Terrain::EnsureScanned()
 			Zones::AddRaw("Terrain.Choke", key, p);
 			++chokes;
 		}
+	}
+
+	{
+		std::string census;
+		for (int i = 0; i < kLandCount; ++i)
+		{
+			if (!landCensus[i])
+				continue;
+			char part[48];
+			std::snprintf(part, sizeof(part), "%s=%d ", kLandName[i], landCensus[i]);
+			census += part;
+		}
+		Debug::Log("[WarZoneExt] LandType census: %s\n",
+			census.empty() ? "(none)" : census.c_str());
 	}
 
 	Debug::Log("[WarZoneExt] terrain scanned: %d cells, %u bucket(s) -> open=%d cliff=%d "

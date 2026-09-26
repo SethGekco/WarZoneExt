@@ -97,6 +97,34 @@ Rules that keep three chats from colliding:
   multi-landmass map to confirm `distinctGround > 1` actually flags disconnected
   land. Will update this entry once tested.
 
+## [unreleased] — 2026-09-25 — DossierExt session (terrain verify, Rex)
+
+### Verified in-game (first real data)
+- **Phase 0/1/2 all confirmed working.** `Powder_Keg.ini` grew 149B -> 19KB.
+  Load half of the round-trip finally proven: `map 'Powder_Keg' loaded: games=2
+  244x244 spawns=2, 14 zone(s), 1704 bucket(s)`. Terrain caching confirmed:
+  "terrain already on record for this map, skipping scan".
+- Every event zone accumulating: `Kill` (hottest 13,16=141), `MinerDeath`,
+  `MinerTravel` (24,12=199), `Traffic`, `StructureLoss`, `FirstContact`,
+  `Lane.0/1.In/Out`, plus the other sessions' `AirDeath`, `Terrain.GroundZone`,
+  `Terrain.WaterZone`.
+- **Nice cross-check that the lane logic is right:** `Lane.0.Out` and
+  `Lane.1.In` agree exactly (13,16=123), as do `Lane.1.Out` and `Lane.0.In`
+  (9,20=17) — spawn 0's kills ARE spawn 1's losses, so the direction split is
+  wired correctly.
+
+### Fixed / Added
+- **`Terrain.Cliff` came back EMPTY** on the first tested map while
+  `Terrain.Open` (193), `Terrain.Water` (293) and `Terrain.Choke` (27) all
+  populated. Cause not yet established — either the map genuinely has no
+  `LandType::Rock`, or cliffs are not expressed as Rock at all. Rather than guess
+  (a mistake this project has paid for before), added a **LandType census** to the
+  scan log, so the next run names every land type actually present:
+  `LandType census: Clear=... Water=... Rock=...`.
+- New `[WarZone.Terrain] Rescan=yes` to force a re-scan when the SCANNER changes
+  (stored terrain is otherwise permanent and would mask any fix). **No consumer
+  action; no zone or API change.**
+
 ## [unreleased] — 2026-09-25 — DoctrineExt session (AA air-defense, Rex)
 
 ### API — FIRST EXPORTED SURFACE (`WZ_Version()` now exists)

@@ -25,6 +25,9 @@ struct WarZoneConfig
 	// Static terrain analysis. Percentages are per bucket, so they describe
 	// SPACING: 90% passable = open ground, 20% = mostly wall/water/cliff.
 	bool ScanTerrain = true;
+	// Force a re-scan even when terrain is already on record. Only needed when
+	// the SCANNER itself changed — stored terrain is otherwise permanent.
+	bool RescanTerrain = false;
 	int OpenPercent = 85;               // >= this passable -> Terrain.Open
 	int CliffPercent = 40;              // >= this rock/water -> Cliff / Water
 	int ChokeMinPercent = 10;           // a choke is passable but narrow...

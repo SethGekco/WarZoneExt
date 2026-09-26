@@ -39,6 +39,7 @@ void WarZoneConfig::EnsureParsed()
 		cfg.UseHistoryInMultiplayer);
 	cfg.TrafficInterval = pINI->ReadInteger("WarZone.General", "TrafficInterval", cfg.TrafficInterval);
 	cfg.ScanTerrain = pINI->ReadBool("WarZone.Terrain", "Scan", cfg.ScanTerrain);
+	cfg.RescanTerrain = pINI->ReadBool("WarZone.Terrain", "Rescan", cfg.RescanTerrain);
 	cfg.OpenPercent = pINI->ReadInteger("WarZone.Terrain", "OpenPercent", cfg.OpenPercent);
 	cfg.CliffPercent = pINI->ReadInteger("WarZone.Terrain", "CliffPercent", cfg.CliffPercent);
 	cfg.ChokeMinPercent = pINI->ReadInteger("WarZone.Terrain", "ChokeMinPercent", cfg.ChokeMinPercent);
